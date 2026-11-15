@@ -16,7 +16,7 @@ namespace TPFINAL_PAZ
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormIngredientes());
+            Application.Run(new Form1());
         }
     }
 }

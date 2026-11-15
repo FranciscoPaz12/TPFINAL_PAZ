@@ -22,8 +22,11 @@ namespace TPFINAL_PAZ.Models
         //ID del segundo ingrediente utilizado
         public int Ingrediente2ID { get; set; }
 
-        //Efectos compartidos por los ingredientes
-        public string Efecto { get; set; }
+        //Array que almacena hasta cuatro efectos compartidos
+        public string[] Efectos { get; set; } = new string[4];
+
+        //Cantidad de efectos que contiene la pocion
+        public int CantidadEfectos { get; set; }
 
         //Magnitud calculada automaticamente
         //1 = I, 2 = II, 3 = III.

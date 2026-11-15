@@ -15,6 +15,7 @@ namespace TPFINAL_PAZ
     {
         public FormIngredientes()
         {
+
             InitializeComponent();
 
             //Mostramos el primer ID disponible
@@ -84,6 +85,9 @@ namespace TPFINAL_PAZ
             }
 
         }
+
+
+
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -527,6 +531,12 @@ namespace TPFINAL_PAZ
                 //Evitamos que Windows reproduzca el sonido de Enter
                 e.SuppressKeyPress = true;
             }
+        }
+
+        private void btnMesaAlquimia_Click(object sender, EventArgs e)
+        {
+            //Cerramos el gestor para regresar a la mesa de alquimia
+            this.Close();
         }
     }
 }
