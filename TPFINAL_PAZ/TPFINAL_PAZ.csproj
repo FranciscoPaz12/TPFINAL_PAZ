@@ -58,6 +58,7 @@
     <Compile Include="FormIngredientes.Designer.cs">
       <DependentUpon>FormIngredientes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\DatosAlquimia.cs" />
     <Compile Include="Models\Ingrediente.cs" />
     <Compile Include="Models\Pocion.cs" />
     <Compile Include="Program.cs" />

@@ -29,14 +29,26 @@ namespace TPFINAL_PAZ
         }
 
 
-        //Array que permite almacenar hasta 100 ingredientes
-        private Ingrediente[] ingredientes = new Ingrediente[100];
 
-        //Cantidad de ingredientes que tenemos registrados
-        private int cantidadIngredientes = 0;
+        //Accedemos al array compartido de ingredientes
+        private Ingrediente[] ingredientes
+        {
+            get { return DatosAlquimia.Ingredientes; }
+        }
 
-        //Numero que utilizaremos para generar IDs automaticos
-        private int siguienteID = 1;
+        //Consultamos y actualizamos la cantidad compartida
+        private int cantidadIngredientes
+        {
+            get { return DatosAlquimia.CantidadIngredientes; }
+            set { DatosAlquimia.CantidadIngredientes = value; }
+        }
+
+        //Consultamos y actualizamos el siguiente ID compartido
+        private int siguienteID
+        {
+            get { return DatosAlquimia.SiguienteIDIngrediente; }
+            set { DatosAlquimia.SiguienteIDIngrediente = value; }
+        }
 
         //Guarda el ID del ingrediente consultado
         //El valor -1 indica que no hay ningun ingrediente consultado
@@ -431,10 +443,10 @@ namespace TPFINAL_PAZ
 
         private void btnBuscar_Click(object sender, EventArgs e)
         {
-            //Obtenemos el texto ingresado y eliminamos espacios sobrantes
+            //Obtenemos el texto ingresado en el buscador
             string busqueda = txtBuscar.Text.Trim();
 
-            //Verificamos que el usuario haya escrito algo
+            //Verificamos que se haya ingresado un valor
             if (string.IsNullOrWhiteSpace(busqueda))
             {
                 MessageBox.Show("Ingrese un ID, nombre o efecto para buscar.");
@@ -442,68 +454,62 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Reiniciamos cualquier consulta anterior
+            //Cancelamos cualquier consulta anterior
             idConsultado = -1;
 
-            //Mostramos nuevamente todos los ingredientes
+            //Limpiamos la tabla antes de mostrar los resultados
             MostrarIngredientes();
+            dgvIngredientes.Rows.Clear();
 
-            //Contador de ingredientes encontrados
+            //Contamos los ingredientes encontrados
             int encontrados = 0;
 
-            //Comprobamos si la busqueda es un numero de ID
-            int idBuscado;
-            bool buscarPorID = int.TryParse(busqueda, out idBuscado);
-
-            //Recorremos todas las filas desde la ultima hasta la primera
-            for (int i = dgvIngredientes.Rows.Count - 1; i >= 0; i--)
+            //Recorremos los ingredientes almacenados en el array
+            for (int i = 0; i < cantidadIngredientes; i++)
             {
-                //Obtenemos la fila actual
-                DataGridViewRow fila = dgvIngredientes.Rows[i];
+                //Obtenemos el ingrediente de la posicion actual
+                Ingrediente ingrediente = ingredientes[i];
 
-                //Obtenemos los datos del ingrediente
-                int id = Convert.ToInt32(fila.Cells["ID"].Value);
-                string nombre = fila.Cells["Nombre"].Value.ToString();
-                string efecto1 = fila.Cells["Efecto1"].Value.ToString();
-                string efecto2 = fila.Cells["Efecto2"].Value.ToString();
-                string efecto3 = fila.Cells["Efecto3"].Value.ToString();
-                string efecto4 = fila.Cells["Efecto4"].Value.ToString();
 
-                //Variable que indica si encontramos una coincidencia
-                bool coincide = false;
+                //Buscamos coincidencias en el ID, nombre y los cuatro efectos
+                bool coincide =
+                    ingrediente.ID.ToString() == busqueda ||
+                    ingrediente.Nombre.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    ingrediente.Efecto1.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    ingrediente.Efecto2.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    ingrediente.Efecto3.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    ingrediente.Efecto4.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0;
 
-                if (buscarPorID)
-                {
-                    //Buscamos una coincidencia exacta con el ID
-                    coincide = id == idBuscado;
-                }
-                else
-                {
-                    //Buscamos coincidencias en el nombre y los cuatro efectos
-                    coincide =
-                        nombre.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        efecto1.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        efecto2.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        efecto3.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        efecto4.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0;
-                }
 
-                //Quitamos de la tabla las filas que no coinciden
-                if (!coincide)
+                if (coincide)
                 {
-                    dgvIngredientes.Rows.RemoveAt(i);
-                }
-                else
-                {
-                    //Aumentamos el contador de resultados
+                    //Convertimos la calidad numerica a numeros romanos
+                    string calidad = ingrediente.Calidad == 1 ? "I" :
+                                     ingrediente.Calidad == 2 ? "II" : "III";
+
+                    //Agregamos el ingrediente encontrado a la tabla
+                    dgvIngredientes.Rows.Add(
+                        ingrediente.ID,
+                        ingrediente.Nombre,
+                        ingrediente.Efecto1,
+                        ingrediente.Efecto2,
+                        ingrediente.Efecto3,
+                        ingrediente.Efecto4,
+                        calidad
+                    );
+
+                    //Aumentamos la cantidad de resultados encontrados
                     encontrados++;
                 }
             }
 
+            //Quitamos cualquier seleccion automatica de la tabla
+            dgvIngredientes.ClearSelection();
+
             //Limpiamos los campos del formulario
             LimpiarCampos();
 
-            //Informamos si no encontramos resultados
+            //Informamos cuando no existen coincidencias
             if (encontrados == 0)
             {
                 MessageBox.Show("No se encontraron ingredientes.");
