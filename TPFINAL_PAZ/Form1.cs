@@ -8,22 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using TPFINAL_PAZ.Models;
+using TPFINAL_PAZ.Data;
 
 namespace TPFINAL_PAZ
 {
     public partial class Form1 : Form
     {
-        //Array que almacena hasta 100 objetos de tipo Pocion
-        //Cada posicion puede tener una pocion diferente
-        private Pocion[] pociones = new Pocion[100];
-        
-        //Contador que registra cuantas pociones tenemos almacenadas
-        //Comienza en 0 porque inicialmente no hay pociones
-        private int cantidadPociones = 0;
-
-        //Guarda el proximo ID disponible para una nueva pocion.
-        //Aumenta cada vez que se registra una pocion correctamente
-        private int siguienteID = 1;
 
         //Guardamos temporalmente los efectos de la pocion elaborada
         private string[] efectosElaborados = new string[4];
@@ -40,6 +30,9 @@ namespace TPFINAL_PAZ
         //Guardamos el ID de la pocion consultada
         private int idConsultado = -1;
 
+        //Guardamos los ingredientes obtenidos desde TiDB Cloud
+        private List<Ingrediente> ingredientesSQL = new List<Ingrediente>();
+
 
 
 
@@ -48,12 +41,47 @@ namespace TPFINAL_PAZ
         {
             InitializeComponent();
 
-            //Mostramos el ID que recibira la proxima pocion
-            txtID.Text = siguienteID.ToString();
+            //El ID se genera automaticamente en TiDB Cloud
+            txtID.Text = "Automatico";
 
-            //Cargamos los ingredientes registrados al iniciar el formulario
-            CargarIngredientes();
+            //Cargamos los ingredientes desde TiDB Cloud
+            CargarIngredientesSQL();
 
+            //Mostramos automaticamente las pociones guardadas
+            MostrarPociones();
+
+        }
+
+        private void CargarIngredientesSQL()
+        {
+            try
+            {
+                //Obtenemos los ingredientes desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Ingrediente> lista = conexion.ObtenerIngredientes();
+
+                //Guardamos los ingredientes en la lista del formulario
+                ingredientesSQL = lista;
+
+                //Limpiamos los ComboBox
+                cmbIngrediente1.Items.Clear();
+                cmbIngrediente2.Items.Clear();
+
+                //Agregamos los nombres de los ingredientes
+                foreach (Ingrediente ingrediente in ingredientesSQL)
+                {
+                    cmbIngrediente1.Items.Add(ingrediente.Nombre);
+                    cmbIngrediente2.Items.Add(ingrediente.Nombre);
+                }
+
+                //Dejamos los ComboBox sin seleccion inicial
+                cmbIngrediente1.SelectedIndex = -1;
+                cmbIngrediente2.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar ingredientes: " + ex.Message);
+            }
         }
 
         private void CampoSoloLectura_MouseDown(object sender, MouseEventArgs e)
@@ -62,69 +90,76 @@ namespace TPFINAL_PAZ
             this.ActiveControl = null;
         }
 
-        private void CargarIngredientes()
-        {
-            //Limpiamos los ingredientes anteriores de ambos ComboBox
-            cmbIngrediente1.Items.Clear();
-            cmbIngrediente2.Items.Clear();
-
-            //Recorremos el array compartido de ingredientes
-            for (int i = 0; i < DatosAlquimia.CantidadIngredientes; i++)
-            {
-                //Obtenemos el ingrediente de la posicion actual
-                Ingrediente ingrediente = DatosAlquimia.Ingredientes[i];
-
-                //Agregamos el nombre a ambos ComboBox
-                cmbIngrediente1.Items.Add(ingrediente.Nombre);
-                cmbIngrediente2.Items.Add(ingrediente.Nombre);
-            }
-
-            //Dejamos ambos ComboBox sin una seleccion inicial
-            cmbIngrediente1.SelectedIndex = -1;
-            cmbIngrediente2.SelectedIndex = -1;
-        }
-
-
         private void MostrarPociones()
         {
-            //Eliminamos las filas y columnas anteriores de la tabla
-            dgvPociones.DataSource = null;
-            dgvPociones.Rows.Clear();
-            dgvPociones.Columns.Clear();
-
-            //Creamos las columnas que mostraran los datos
-            dgvPociones.Columns.Add("ID", "ID");
-            dgvPociones.Columns.Add("Nombre", "Nombre");
-            dgvPociones.Columns.Add("Efecto", "Efecto");
-            dgvPociones.Columns.Add("Magnitud", "Magnitud");
-
-            //Recorremos el array hasta la cantidad de pociones guardadas
-            for (int i = 0; i < cantidadPociones; i++)
+            try
             {
+                //Obtenemos las pociones desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Pocion> lista = conexion.ObtenerPociones();
 
-                //Creamos una variable para mostrar los efectos
-                string efectosTexto = "";
+                //Limpiamos las filas y columnas anteriores
+                dgvPociones.DataSource = null;
+                dgvPociones.Rows.Clear();
+                dgvPociones.Columns.Clear();
 
-                //Recorremos los efectos que tiene la pocion
-                for (int j = 0; j < pociones[i].CantidadEfectos; j++)
+                //Creamos las columnas de la tabla
+                dgvPociones.Columns.Add("ID", "ID");
+                dgvPociones.Columns.Add("Nombre", "Nombre");
+                dgvPociones.Columns.Add("Efecto", "Efecto");
+                dgvPociones.Columns.Add("Magnitud", "Magnitud");
+
+                //Recorremos las pociones obtenidas
+                foreach (Pocion pocion in lista)
                 {
-                    //Agregamos una coma entre los efectos
-                    if (j > 0)
+                    //Preparamos el texto de los efectos
+                    string efectosTexto = "";
+
+                    for (int i = 0; i < pocion.CantidadEfectos; i++)
                     {
-                        efectosTexto += ", ";
+                        if (i > 0)
+                        {
+                            efectosTexto += ", ";
+                        }
+
+                        efectosTexto += pocion.Efectos[i];
                     }
 
-                    //Agregamos el efecto actual
-                    efectosTexto += pociones[i].Efectos[j];
+                    //Convertimos la magnitud a numeros romanos
+                    string magnitudRomana = pocion.Magnitud.ToString();
+
+                    if (pocion.Magnitud == 1)
+                    {
+                        magnitudRomana = "I";
+                    }
+                    else if (pocion.Magnitud == 2)
+                    {
+                        magnitudRomana = "II";
+                    }
+                    else if (pocion.Magnitud == 3)
+                    {
+                        magnitudRomana = "III";
+                    }
+
+                    //Agregamos la pocion a la tabla
+                    dgvPociones.Rows.Add(
+                        pocion.ID,
+                        pocion.Nombre,
+                        efectosTexto,
+                        magnitudRomana
+                    );
                 }
 
-                // Agregamos una fila con los datos de cada pocion
-                dgvPociones.Rows.Add(
-                    pociones[i].ID,
-                    pociones[i].Nombre,
-                    efectosTexto,
-                    pociones[i].Magnitud
-                );
+                //Configuramos la seleccion de filas
+                dgvPociones.SelectionMode =
+                    DataGridViewSelectionMode.FullRowSelect;
+
+                dgvPociones.MultiSelect = false;
+                dgvPociones.ClearSelection();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al mostrar pociones: " + ex.Message);
             }
         }
 
@@ -140,8 +175,8 @@ namespace TPFINAL_PAZ
             //Colocamos el cursor en el nombre de la pocion
             txtNombre.Focus();
 
-            //Actualizamos el ID para la proxima pocion
-            txtID.Text = siguienteID.ToString();
+            //El ID se genera automaticamente en TiDB Cloud
+            txtID.Text = "Automatico";
         }
 
 
@@ -163,56 +198,64 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Verificamos que haya espacio disponible en el array
-            if (cantidadPociones >= pociones.Length)
+            //Verificamos que haya dos ingredientes seleccionados
+            if (cmbIngrediente1.SelectedIndex == -1 ||
+                cmbIngrediente2.SelectedIndex == -1)
             {
-                MessageBox.Show("No se pueden registrar mas pociones.");
+                MessageBox.Show("Seleccione dos ingredientes.");
                 return;
             }
 
-            //Obtenemos los ingredientes seleccionados
+            //Obtenemos los ingredientes desde TiDB Cloud
             Ingrediente ingrediente1 =
-                DatosAlquimia.Ingredientes[cmbIngrediente1.SelectedIndex];
+                ingredientesSQL[cmbIngrediente1.SelectedIndex];
 
             Ingrediente ingrediente2 =
-                DatosAlquimia.Ingredientes[cmbIngrediente2.SelectedIndex];
+                ingredientesSQL[cmbIngrediente2.SelectedIndex];
 
             //Creamos la nueva pocion
             Pocion nuevaPocion = new Pocion();
 
-            nuevaPocion.ID = siguienteID;
             nuevaPocion.Nombre = txtNombre.Text.Trim();
             nuevaPocion.Ingrediente1ID = ingrediente1.ID;
             nuevaPocion.Ingrediente2ID = ingrediente2.ID;
             nuevaPocion.Magnitud = magnitudElaborada;
             nuevaPocion.CantidadEfectos = cantidadEfectosElaborados;
 
-            //Copiamos los efectos compartidos a la pocion
+            //Copiamos los efectos compartidos
             for (int i = 0; i < cantidadEfectosElaborados; i++)
             {
                 nuevaPocion.Efectos[i] = efectosElaborados[i];
             }
 
-            //Guardamos la pocion en el array
-            pociones[cantidadPociones] = nuevaPocion;
+            try
+            {
+                //Guardamos la pocion y sus efectos en TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                int idGenerado = conexion.AgregarPocion(nuevaPocion);
 
-            //Actualizamos los contadores
-            cantidadPociones++;
-            siguienteID++;
+                //Actualizamos la tabla con las pociones de TiDB Cloud
+                MostrarPociones();
 
-            //Actualizamos la tabla
-            MostrarPociones();
+                //Reiniciamos la elaboracion temporal
+                pocionElaborada = false;
+                cantidadEfectosElaborados = 0;
+                magnitudElaborada = 0;
+                idConsultado = -1;
 
-            //Indicamos que la pocion fue guardada
-            MessageBox.Show("Pocion agregada correctamente.");
+                //Limpiamos los campos
+                LimpiarCampos();
 
-            //Reiniciamos la elaboracion temporal
-            pocionElaborada = false;
-            cantidadEfectosElaborados = 0;
-            magnitudElaborada = 0;
-
-            //Limpiamos los campos
-            LimpiarCampos();
+                //Informamos que la pocion fue guardada
+                MessageBox.Show(
+                    "Pocion agregada correctamente en TiDB Cloud. ID: " +
+                    idGenerado
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al agregar pocion: " + ex.Message);
+            }
         }
 
 
@@ -243,80 +286,90 @@ namespace TPFINAL_PAZ
                 dgvPociones.SelectedRows[0].Cells["ID"].Value
             );
 
-            //Recorremos el array para buscar la pocion
-            for (int i = 0; i < cantidadPociones; i++)
+            try
             {
-                if (pociones[i].ID == idSeleccionado)
+                //Consultamos las pociones desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Pocion> lista = conexion.ObtenerPociones();
+
+                //Buscamos la pocion seleccionada
+                foreach (Pocion pocion in lista)
                 {
-                    //Guardamos el ID de la pocion consultada
-                    idConsultado = pociones[i].ID;
-
-                    //Mostramos el ID y el nombre
-                    txtID.Text = pociones[i].ID.ToString();
-                    txtNombre.Text = pociones[i].Nombre;
-
-                    //Limpiamos las selecciones anteriores
-                    cmbIngrediente1.SelectedIndex = -1;
-                    cmbIngrediente2.SelectedIndex = -1;
-
-                    //Buscamos los ingredientes originales
-                    for (int j = 0; j < DatosAlquimia.CantidadIngredientes; j++)
+                    if (pocion.ID == idSeleccionado)
                     {
-                        if (DatosAlquimia.Ingredientes[j].ID == pociones[i].Ingrediente1ID)
+                        //Reiniciamos cualquier elaboracion anterior
+                        pocionElaborada = false;
+                        cantidadEfectosElaborados = 0;
+                        magnitudElaborada = 0;
+
+                        //Guardamos el ID de la pocion consultada
+                        idConsultado = pocion.ID;
+
+                        //Mostramos el ID y el nombre
+                        txtID.Text = pocion.ID.ToString();
+                        txtNombre.Text = pocion.Nombre;
+
+                        //Limpiamos las selecciones anteriores
+                        cmbIngrediente1.SelectedIndex = -1;
+                        cmbIngrediente2.SelectedIndex = -1;
+
+                        //Buscamos los ingredientes originales
+                        for (int i = 0; i < ingredientesSQL.Count; i++)
                         {
-                            cmbIngrediente1.SelectedIndex = j;
+                            if (ingredientesSQL[i].ID == pocion.Ingrediente1ID)
+                            {
+                                cmbIngrediente1.SelectedIndex = i;
+                            }
+
+                            if (ingredientesSQL[i].ID == pocion.Ingrediente2ID)
+                            {
+                                cmbIngrediente2.SelectedIndex = i;
+                            }
                         }
 
-                        if (DatosAlquimia.Ingredientes[j].ID == pociones[i].Ingrediente2ID)
-                        {
-                            cmbIngrediente2.SelectedIndex = j;
-                        }
-                    }
+                        //Preparamos el texto de los efectos
+                        string efectosTexto = "";
 
-                    //Preparamos el texto de los efectos
-                    string efectosTexto = "";
-
-                    //Recorremos los efectos guardados
-                    for (int j = 0; j < pociones[i].CantidadEfectos; j++)
-                    {
-                        //Agregamos una coma entre los efectos
-                        if (j > 0)
+                        for (int i = 0; i < pocion.CantidadEfectos; i++)
                         {
-                            efectosTexto += ", ";
+                            if (i > 0)
+                            {
+                                efectosTexto += ", ";
+                            }
+
+                            efectosTexto += pocion.Efectos[i];
                         }
 
-                        //Agregamos el efecto actual
-                        efectosTexto += pociones[i].Efectos[j];
-                    }
+                        //Mostramos los efectos guardados
+                        txtEfecto.Text = efectosTexto;
 
-                    //Mostramos los efectos de la pocion
-                    txtEfecto.Text = efectosTexto;
+                        //Convertimos la magnitud a numeros romanos
+                        if (pocion.Magnitud == 1)
+                        {
+                            txtMagnitud.Text = "I";
+                        }
+                        else if (pocion.Magnitud == 2)
+                        {
+                            txtMagnitud.Text = "II";
+                        }
+                        else
+                        {
+                            txtMagnitud.Text = "III";
+                        }
 
-                    //Convertimos la magnitud a numeros romanos
-                    if (pociones[i].Magnitud == 1)
-                    {
-                        txtMagnitud.Text = "I";
+                        return;
                     }
-                    else if (pociones[i].Magnitud == 2)
-                    {
-                        txtMagnitud.Text = "II";
-                    }
-                    else
-                    {
-                        txtMagnitud.Text = "III";
-                    }
-
-                    //Invalidamos cualquier elaboracion pendiente
-                    pocionElaborada = false;
-                    cantidadEfectosElaborados = 0;
-                    magnitudElaborada = 0;
-
-                    return;
                 }
-            }
 
-            //Informamos si no encontramos la pocion
-            MessageBox.Show("No se encontro la pocion seleccionada.");
+                //Informamos si no encontramos la pocion
+                idConsultado = -1;
+                MessageBox.Show("No se encontro la pocion seleccionada.");
+            }
+            catch (Exception ex)
+            {
+                idConsultado = -1;
+                MessageBox.Show("Error al consultar pocion: " + ex.Message);
+            }
         }
 
 
@@ -338,19 +391,20 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Buscamos la pocion consultada en el array
-            for (int i = 0; i < cantidadPociones; i++)
+            try
             {
-                if (pociones[i].ID == idConsultado)
+                //Modificamos el nombre en TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+
+                int filasAfectadas = conexion.ModificarNombrePocion(
+                    idConsultado,
+                    txtNombre.Text.Trim()
+                );
+
+                if (filasAfectadas > 0)
                 {
-                    //Modificamos solamente el nombre
-                    pociones[i].Nombre = txtNombre.Text.Trim();
-
-                    //Actualizamos la tabla
+                    //Actualizamos la tabla desde TiDB Cloud
                     MostrarPociones();
-
-                    //Informamos que la pocion fue modificada
-                    MessageBox.Show("Nombre de la pocion modificado correctamente.");
 
                     //Reiniciamos la consulta
                     idConsultado = -1;
@@ -363,12 +417,22 @@ namespace TPFINAL_PAZ
                     //Limpiamos los campos
                     LimpiarCampos();
 
-                    return;
+                    MessageBox.Show(
+                        "Nombre de la pocion modificado correctamente."
+                    );
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "No se modifico la pocion. Verifique si hubo cambios."
+                    );
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al modificar pocion: " + ex.Message);
+            }
 
-            //Informamos si no encontramos la pocion
-            MessageBox.Show("No se encontro la pocion consultada.");
         }
 
 
@@ -383,55 +447,51 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Pedimos confirmacion antes de eliminar
+            //Solicitamos confirmacion antes de eliminar
             DialogResult respuesta = MessageBox.Show(
-                "¿Esta seguro de eliminar esta pocion?",
+                "¿Esta seguro de eliminar esta pocion y sus efectos?",
                 "Confirmar eliminacion",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
 
             //Cancelamos si el usuario selecciona No
-            if (respuesta == DialogResult.No)
+            if (respuesta != DialogResult.Yes)
             {
                 return;
             }
 
-            //Buscamos la pocion consultada en el array
-            for (int i = 0; i < cantidadPociones; i++)
+            try
             {
-                if (pociones[i].ID == idConsultado)
+                //Eliminamos la pocion desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                int filasAfectadas = conexion.EliminarPocion(idConsultado);
+
+                if (filasAfectadas > 0)
                 {
-                    //Desplazamos las pociones una posicion hacia la izquierda
-                    for (int j = i; j < cantidadPociones - 1; j++)
-                    {
-                        pociones[j] = pociones[j + 1];
-                    }
-
-                    //Limpiamos la ultima posicion utilizada
-                    pociones[cantidadPociones - 1] = null;
-
-                    //Reducimos la cantidad de pociones
-                    cantidadPociones--;
-
-                    //Actualizamos la tabla
-                    MostrarPociones();
-
                     //Reiniciamos la consulta y la elaboracion
                     idConsultado = -1;
                     pocionElaborada = false;
                     cantidadEfectosElaborados = 0;
                     magnitudElaborada = 0;
 
+                    //Actualizamos la tabla desde TiDB Cloud
+                    MostrarPociones();
+
                     //Limpiamos los campos
                     LimpiarCampos();
 
                     MessageBox.Show("Pocion eliminada correctamente.");
-                    return;
+                }
+                else
+                {
+                    MessageBox.Show("No se encontro la pocion para eliminar.");
                 }
             }
-
-            MessageBox.Show("No se encontro la pocion consultada.");
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al eliminar pocion: " + ex.Message);
+            }
         }
 
 
@@ -463,8 +523,8 @@ namespace TPFINAL_PAZ
             //Volvemos a mostrar la mesa de alquimia
             this.Show();
 
-            //Actualizamos los ingredientes disponibles
-            CargarIngredientes();
+            //Actualizamos los ingredientes desde TiDB Cloud
+            CargarIngredientesSQL();
         }
 
         private void btnElaborar_Click(object sender, EventArgs e)
@@ -493,12 +553,12 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Obtenemos los ingredientes desde el array compartido
+            //Obtenemos los ingredientes desde la lista de TiDB Cloud
             Ingrediente ingrediente1 =
-                DatosAlquimia.Ingredientes[cmbIngrediente1.SelectedIndex];
+                ingredientesSQL[cmbIngrediente1.SelectedIndex];
 
             Ingrediente ingrediente2 =
-                DatosAlquimia.Ingredientes[cmbIngrediente2.SelectedIndex];
+                ingredientesSQL[cmbIngrediente2.SelectedIndex];
 
 
             //Guardamos los cuatro efectos del primer ingrediente
@@ -647,7 +707,7 @@ namespace TPFINAL_PAZ
 
         private void btnBuscar_Click(object sender, EventArgs e)
         {
-            //Obtenemos el texto ingresado en el buscador
+            //Obtenemos el texto ingresado
             string busqueda = txtBuscar.Text.Trim();
 
             //Verificamos que se haya ingresado una busqueda
@@ -657,60 +717,91 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Limpiamos las filas anteriores
-            dgvPociones.Rows.Clear();
-
-            //Contamos las pociones encontradas
-            int encontradas = 0;
-
-            //Recorremos todas las pociones almacenadas
-            for (int i = 0; i < cantidadPociones; i++)
+            try
             {
-                //Preparamos los efectos de la pocion
-                string efectosTexto = "";
+                //Consultamos las pociones desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Pocion> lista = conexion.ObtenerPociones();
 
-                //Recorremos los efectos guardados
-                for (int j = 0; j < pociones[i].CantidadEfectos; j++)
+                //Limpiamos las filas anteriores
+                dgvPociones.Rows.Clear();
+
+                //Reiniciamos la pocion consultada
+                idConsultado = -1;
+
+                //Contamos las coincidencias
+                int encontradas = 0;
+
+                foreach (Pocion pocion in lista)
                 {
-                    if (j > 0)
+                    //Preparamos los efectos de la pocion
+                    string efectosTexto = "";
+
+                    for (int i = 0; i < pocion.CantidadEfectos; i++)
                     {
-                        efectosTexto += ", ";
+                        if (i > 0)
+                        {
+                            efectosTexto += ", ";
+                        }
+
+                        efectosTexto += pocion.Efectos[i];
                     }
 
-                    efectosTexto += pociones[i].Efectos[j];
+                    //Buscamos coincidencias por ID, nombre o efecto
+                    bool coincideID = pocion.ID.ToString() == busqueda;
+
+                    bool coincideNombre = pocion.Nombre.IndexOf(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase
+                    ) >= 0;
+
+                    bool coincideEfecto = efectosTexto.IndexOf(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase
+                    ) >= 0;
+
+                    if (coincideID || coincideNombre || coincideEfecto)
+                    {
+                        //Convertimos la magnitud a numeros romanos
+                        string magnitudRomana = pocion.Magnitud.ToString();
+
+                        if (pocion.Magnitud == 1)
+                        {
+                            magnitudRomana = "I";
+                        }
+                        else if (pocion.Magnitud == 2)
+                        {
+                            magnitudRomana = "II";
+                        }
+                        else if (pocion.Magnitud == 3)
+                        {
+                            magnitudRomana = "III";
+                        }
+
+                        //Mostramos la pocion encontrada
+                        dgvPociones.Rows.Add(
+                            pocion.ID,
+                            pocion.Nombre,
+                            efectosTexto,
+                            magnitudRomana
+                        );
+
+                        encontradas++;
+                    }
                 }
 
-                //Buscamos coincidencias por ID, nombre o efectos
-                bool coincideID = pociones[i].ID.ToString() == busqueda;
+                //Quitamos la seleccion automatica
+                dgvPociones.ClearSelection();
 
-                bool coincideNombre = pociones[i].Nombre.IndexOf(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase
-                ) >= 0;
-
-                bool coincideEfecto = efectosTexto.IndexOf(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase
-                ) >= 0;
-
-                //Mostramos solamente las pociones coincidentes
-                if (coincideID || coincideNombre || coincideEfecto)
+                //Informamos si no encontramos coincidencias
+                if (encontradas == 0)
                 {
-                    dgvPociones.Rows.Add(
-                        pociones[i].ID,
-                        pociones[i].Nombre,
-                        efectosTexto,
-                        pociones[i].Magnitud
-                    );
-
-                    encontradas++;
+                    MessageBox.Show("No se encontraron pociones.");
                 }
             }
-
-            //Informamos si no se encontraron coincidencias
-            if (encontradas == 0)
+            catch (Exception ex)
             {
-                MessageBox.Show("No se encontraron pociones.");
+                MessageBox.Show("Error al buscar pociones: " + ex.Message);
             }
         }
     }

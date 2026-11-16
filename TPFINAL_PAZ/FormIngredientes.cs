@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using TPFINAL_PAZ.Models;
+using TPFINAL_PAZ.Data;
 
 namespace TPFINAL_PAZ
 {
@@ -18,8 +19,8 @@ namespace TPFINAL_PAZ
 
             InitializeComponent();
 
-            //Mostramos el primer ID disponible
-            txtID.Text = siguienteID.ToString();
+            //El ID se genera automaticamente en TiDB Cloud
+            txtID.Text = "Automatico";
 
             //Seleccionamos la calidad normal por defecto
             rdCalidad2.Checked = true;
@@ -27,29 +28,22 @@ namespace TPFINAL_PAZ
             //Mostramos la descripcion de la calidad seleccionada
             lblCalidad.Text = "Calidad normal";
 
+            //Mostramos los ingredientes al abrir el formulario
+            MostrarIngredientes();
+
         }
 
 
-
-        //Accedemos al array compartido de ingredientes
-        private Ingrediente[] ingredientes
+        private void FormIngredientes_FormClosing(object sender, FormClosingEventArgs e)
         {
-            get { return DatosAlquimia.Ingredientes; }
+            //Si el usuario cierra con la X, terminamos la aplicacion
+            if (e.CloseReason == CloseReason.UserClosing && !volverAMesa)
+            {
+                Application.Exit();
+            }
         }
 
-        //Consultamos y actualizamos la cantidad compartida
-        private int cantidadIngredientes
-        {
-            get { return DatosAlquimia.CantidadIngredientes; }
-            set { DatosAlquimia.CantidadIngredientes = value; }
-        }
-
-        //Consultamos y actualizamos el siguiente ID compartido
-        private int siguienteID
-        {
-            get { return DatosAlquimia.SiguienteIDIngrediente; }
-            set { DatosAlquimia.SiguienteIDIngrediente = value; }
-        }
+        private bool volverAMesa = false;
 
         //Guarda el ID del ingrediente consultado
         //El valor -1 indica que no hay ningun ingrediente consultado
@@ -91,14 +85,7 @@ namespace TPFINAL_PAZ
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
-            //Verificamos que el array tenga espacio disponible
-            if (cantidadIngredientes >= ingredientes.Length)
-            {
-                MessageBox.Show("No se pueden agregar mas ingredientes.");
-                return;
-            }
-
-            //Verificamos que todos los campos obligatorios esten completos
+            //Verificamos que todos los campos esten completos
             if (string.IsNullOrWhiteSpace(txtNombre.Text) ||
                 string.IsNullOrWhiteSpace(txtEfecto1.Text) ||
                 string.IsNullOrWhiteSpace(txtEfecto2.Text) ||
@@ -109,114 +96,122 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Creamos un nuevo objeto de tipo Ingrediente
+            //Creamos el ingrediente con los datos del formulario
             Ingrediente nuevoIngrediente = new Ingrediente();
 
-            //Asignamos un ID automatico al ingrediente
-            nuevoIngrediente.ID = siguienteID;
-
-            //Guardamos el nombre y los cuatro efectos ingresados
             nuevoIngrediente.Nombre = txtNombre.Text.Trim();
             nuevoIngrediente.Efecto1 = txtEfecto1.Text.Trim();
             nuevoIngrediente.Efecto2 = txtEfecto2.Text.Trim();
             nuevoIngrediente.Efecto3 = txtEfecto3.Text.Trim();
             nuevoIngrediente.Efecto4 = txtEfecto4.Text.Trim();
 
-            //Determinamos la calidad seleccionada, por defecto utilizamos calidad normal
-
+            //Asignamos la calidad seleccionada
             nuevoIngrediente.Calidad = 2;
 
-            //Si seleccionamos I, asignamos mala calidad
             if (rdCalidad1.Checked)
             {
                 nuevoIngrediente.Calidad = 1;
             }
-            //Si seleccionamos III, asignamos buena calidad
             else if (rdCalidad3.Checked)
             {
                 nuevoIngrediente.Calidad = 3;
             }
 
-            //Configuramos la seleccion de filas completas
-            dgvIngredientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            try
+            {
+                //Guardamos el ingrediente en TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                int filasAfectadas = conexion.AgregarIngrediente(nuevoIngrediente);
 
-            //Permitimos seleccionar una sola fila
-            dgvIngredientes.MultiSelect = false;
+                if (filasAfectadas > 0)
+                {
+                    //Reiniciamos la consulta anterior
+                    idConsultado = -1;
 
-            //Guardamos el ingrediente en la siguiente posicion libre
-            ingredientes[cantidadIngredientes] = nuevoIngrediente;
+                    //Actualizamos la tabla y limpiamos los campos
+                    MostrarIngredientes();
+                    LimpiarCampos();
 
-            //Aumentamos la cantidad de ingredientes registrados
-            cantidadIngredientes++;
-
-            //Incrementamos el ID para el proximo ingrediente
-            siguienteID++;
-
-            //Reiniciamos cualquier consulta anterior
-            idConsultado = -1;
-
-            //Actualizamos la tabla con los ingredientes registrados
-            MostrarIngredientes();
-
-            //Limpiamos los campos para permitir otra carga
-            LimpiarCampos();
-
-            //Informamos que la operacion fue exitosa
-            MessageBox.Show("Ingrediente agregado correctamente.");
+                    MessageBox.Show("Ingrediente agregado correctamente en TiDB Cloud.");
+                }
+                else
+                {
+                    MessageBox.Show("No se pudo agregar el ingrediente.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al agregar ingrediente: " + ex.Message);
+            }
         }
 
 
         private void MostrarIngredientes()
         {
-            //Quitamos cualquier origen de datos anterior
-            dgvIngredientes.DataSource = null;
-
-            //Eliminamos las filas y columnas anteriores
-            dgvIngredientes.Rows.Clear();
-            dgvIngredientes.Columns.Clear();
-
-            //Creamos las columnas de la tabla
-            dgvIngredientes.Columns.Add("ID", "ID");
-            dgvIngredientes.Columns.Add("Nombre", "Nombre");
-            dgvIngredientes.Columns.Add("Efecto1", "Efecto 1");
-            dgvIngredientes.Columns.Add("Efecto2", "Efecto 2");
-            dgvIngredientes.Columns.Add("Efecto3", "Efecto 3");
-            dgvIngredientes.Columns.Add("Efecto4", "Efecto 4");
-            dgvIngredientes.Columns.Add("Calidad", "Calidad");
-
-            //Recorremos las posiciones ocupadas del array
-            for (int i = 0; i < cantidadIngredientes; i++)
+            try
             {
-                //Convertimos la calidad numerica a numeros romanos
-                string calidadRomana = "";
+                //Creamos la conexion con TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
 
-                if (ingredientes[i].Calidad == 1)
+                //Obtenemos los ingredientes desde la base de datos
+                List<Ingrediente> lista = conexion.ObtenerIngredientes();
+
+                //Limpiamos los datos anteriores de la tabla
+                dgvIngredientes.DataSource = null;
+                dgvIngredientes.Rows.Clear();
+                dgvIngredientes.Columns.Clear();
+
+                //Creamos las columnas de la tabla
+                dgvIngredientes.Columns.Add("ID", "ID");
+                dgvIngredientes.Columns.Add("Nombre", "Nombre");
+                dgvIngredientes.Columns.Add("Efecto1", "Efecto 1");
+                dgvIngredientes.Columns.Add("Efecto2", "Efecto 2");
+                dgvIngredientes.Columns.Add("Efecto3", "Efecto 3");
+                dgvIngredientes.Columns.Add("Efecto4", "Efecto 4");
+                dgvIngredientes.Columns.Add("Calidad", "Calidad");
+
+                //Configuramos la seleccion de filas completas
+                dgvIngredientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvIngredientes.MultiSelect = false;
+
+                //Recorremos los ingredientes obtenidos desde SQL
+                foreach (Ingrediente ingrediente in lista)
                 {
-                    calidadRomana = "I";
-                }
-                else if (ingredientes[i].Calidad == 2)
-                {
-                    calidadRomana = "II";
-                }
-                else
-                {
-                    calidadRomana = "III";
+                    //Convertimos la calidad numerica a numeros romanos
+                    string calidadRomana = "";
+
+                    if (ingrediente.Calidad == 1)
+                    {
+                        calidadRomana = "I";
+                    }
+                    else if (ingrediente.Calidad == 2)
+                    {
+                        calidadRomana = "II";
+                    }
+                    else
+                    {
+                        calidadRomana = "III";
+                    }
+
+                    //Agregamos el ingrediente a la tabla
+                    dgvIngredientes.Rows.Add(
+                        ingrediente.ID,
+                        ingrediente.Nombre,
+                        ingrediente.Efecto1,
+                        ingrediente.Efecto2,
+                        ingrediente.Efecto3,
+                        ingrediente.Efecto4,
+                        calidadRomana
+                    );
                 }
 
-                //Agregamos una fila con los datos del ingrediente
-                dgvIngredientes.Rows.Add(
-                    ingredientes[i].ID,
-                    ingredientes[i].Nombre,
-                    ingredientes[i].Efecto1,
-                    ingredientes[i].Efecto2,
-                    ingredientes[i].Efecto3,
-                    ingredientes[i].Efecto4,
-                    calidadRomana
-                );
+                //Quitamos la seleccion automatica
+                dgvIngredientes.ClearSelection();
             }
-
-            //Quitamos la seleccion automatica de la tabla
-            dgvIngredientes.ClearSelection();
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al consultar ingredientes: " + ex.Message);
+            }
         }
 
 
@@ -229,8 +224,8 @@ namespace TPFINAL_PAZ
             txtEfecto3.Clear();
             txtEfecto4.Clear();
 
-            //Mostramos el siguiente ID automatico
-            txtID.Text = siguienteID.ToString();
+            //El ID se genera automaticamente en TiDB Cloud
+            txtID.Text = "Automatico";
 
             //Restablecemos la calidad normal
             rdCalidad2.Checked = true;
@@ -242,50 +237,56 @@ namespace TPFINAL_PAZ
 
         private void btnConsultar_Click(object sender, EventArgs e)
         {
-            //Verificamos que el usuario haya seleccionado una fila
+            //Verificamos que haya una fila seleccionada
             if (dgvIngredientes.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Seleccione un ingrediente de la tabla.");
                 return;
             }
 
-            //Obtenemos el ID de la fila seleccionada
+            //Obtenemos el ID seleccionado
             int id = Convert.ToInt32(
                 dgvIngredientes.SelectedRows[0].Cells["ID"].Value
             );
 
-            //Buscamos el ingrediente dentro del array
-            for (int i = 0; i < cantidadIngredientes; i++)
+            try
             {
-                //Comparamos el ID guardado con el ID seleccionado
-                if (ingredientes[i].ID == id)
+                //Consultamos los ingredientes desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Ingrediente> lista = conexion.ObtenerIngredientes();
+
+                //Buscamos el ingrediente por su ID
+                foreach (Ingrediente ingrediente in lista)
                 {
-                    //Mostramos los datos del ingrediente encontrado
-                    txtID.Text = ingredientes[i].ID.ToString();
-                    txtNombre.Text = ingredientes[i].Nombre;
-                    txtEfecto1.Text = ingredientes[i].Efecto1;
-                    txtEfecto2.Text = ingredientes[i].Efecto2;
-                    txtEfecto3.Text = ingredientes[i].Efecto3;
-                    txtEfecto4.Text = ingredientes[i].Efecto4;
+                    if (ingrediente.ID == id)
+                    {
+                        //Mostramos los datos del ingrediente
+                        txtID.Text = ingrediente.ID.ToString();
+                        txtNombre.Text = ingrediente.Nombre;
+                        txtEfecto1.Text = ingrediente.Efecto1;
+                        txtEfecto2.Text = ingrediente.Efecto2;
+                        txtEfecto3.Text = ingrediente.Efecto3;
+                        txtEfecto4.Text = ingrediente.Efecto4;
 
-                    //Seleccionamos la calidad correspondiente
-                    rdCalidad1.Checked = ingredientes[i].Calidad == 1;
-                    rdCalidad2.Checked = ingredientes[i].Calidad == 2;
-                    rdCalidad3.Checked = ingredientes[i].Calidad == 3;
+                        //Seleccionamos la calidad correspondiente
+                        rdCalidad1.Checked = ingrediente.Calidad == 1;
+                        rdCalidad2.Checked = ingrediente.Calidad == 2;
+                        rdCalidad3.Checked = ingrediente.Calidad == 3;
 
+                        //Guardamos el ID consultado
+                        idConsultado = ingrediente.ID;
 
-                    //Recordamos el ID del ingrediente que consultamos
-                    idConsultado = ingredientes[i].ID;
-
-
-                    //Informamos que encontramos el ingrediente
-                    MessageBox.Show("Ingrediente encontrado correctamente.");
-                    return;
+                        MessageBox.Show("Ingrediente encontrado correctamente.");
+                        return;
+                    }
                 }
-            }
 
-            //Avisamos si no encontramos el ingrediente
-            MessageBox.Show("No se encontro el ingrediente.");
+                MessageBox.Show("No se encontro el ingrediente.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al consultar ingrediente: " + ex.Message);
+            }
         }
 
         private void btnModificar_Click(object sender, EventArgs e)
@@ -294,6 +295,18 @@ namespace TPFINAL_PAZ
             if (dgvIngredientes.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Seleccione un ingrediente de la tabla.");
+                return;
+            }
+
+            //Obtenemos el ID seleccionado
+            int id = Convert.ToInt32(
+                dgvIngredientes.SelectedRows[0].Cells["ID"].Value
+            );
+
+            //Verificamos que primero se haya consultado
+            if (idConsultado != id)
+            {
+                MessageBox.Show("Primero debe consultar el ingrediente seleccionado.");
                 return;
             }
 
@@ -308,75 +321,66 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Obtenemos el ID del ingrediente seleccionado
-            int id = Convert.ToInt32(
-                dgvIngredientes.SelectedRows[0].Cells["ID"].Value
-            );
+            //Creamos el ingrediente con los datos modificados
+            Ingrediente ingrediente = new Ingrediente();
 
-            //Verificamos que primero se haya consultado el ingrediente
-            if (idConsultado != id)
+            ingrediente.ID = id;
+            ingrediente.Nombre = txtNombre.Text.Trim();
+            ingrediente.Efecto1 = txtEfecto1.Text.Trim();
+            ingrediente.Efecto2 = txtEfecto2.Text.Trim();
+            ingrediente.Efecto3 = txtEfecto3.Text.Trim();
+            ingrediente.Efecto4 = txtEfecto4.Text.Trim();
+
+            //Asignamos la calidad seleccionada
+            ingrediente.Calidad = 2;
+
+            if (rdCalidad1.Checked)
             {
-                MessageBox.Show("Primero debe consultar el ingrediente seleccionado.");
-                return;
+                ingrediente.Calidad = 1;
+            }
+            else if (rdCalidad3.Checked)
+            {
+                ingrediente.Calidad = 3;
             }
 
-            //Recorremos el array buscando el ingrediente
-            for (int i = 0; i < cantidadIngredientes; i++)
+            try
             {
-                //Comparamos los IDs para encontrar el registro correcto
-                if (ingredientes[i].ID == id)
+                //Guardamos los cambios en TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                int filasAfectadas = conexion.ModificarIngrediente(ingrediente);
+
+                if (filasAfectadas > 0)
                 {
-                    //Actualizamos el nombre y los cuatro efectos
-                    ingredientes[i].Nombre = txtNombre.Text.Trim();
-                    ingredientes[i].Efecto1 = txtEfecto1.Text.Trim();
-                    ingredientes[i].Efecto2 = txtEfecto2.Text.Trim();
-                    ingredientes[i].Efecto3 = txtEfecto3.Text.Trim();
-                    ingredientes[i].Efecto4 = txtEfecto4.Text.Trim();
-
-                    //Actualizamos la calidad del ingrediente
-                    if (rdCalidad1.Checked)
-                    {
-                        ingredientes[i].Calidad = 1;
-                    }
-                    else if (rdCalidad2.Checked)
-                    {
-                        ingredientes[i].Calidad = 2;
-                    }
-                    else
-                    {
-                        ingredientes[i].Calidad = 3;
-                    }
-
-                    //Reiniciamos el ID consultado para evitar modificaciones accidentales
+                    //Reiniciamos la consulta anterior
                     idConsultado = -1;
 
-                    //Actualizamos la tabla con los cambios
+                    //Actualizamos la tabla y limpiamos los campos
                     MostrarIngredientes();
-
-                    //Limpiamos los campos del formulario
                     LimpiarCampos();
 
-                    //Confirmamos que se guardaron las modificaciones
                     MessageBox.Show("Ingrediente modificado correctamente.");
-                    return;
                 }
-
+                else
+                {
+                    MessageBox.Show("No se modifico el ingrediente. Verifique si hubo cambios.");
+                }
             }
-
-            //Avisamos si el ingrediente no existe en el array
-            MessageBox.Show("No se encontro el ingrediente.");
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al modificar ingrediente: " + ex.Message);
+            }
         }
 
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            //Verificamos que haya un ingrediente seleccionado
+            //Verificamos que haya una fila seleccionada
             if (dgvIngredientes.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Seleccione un ingrediente para eliminar.");
                 return;
             }
 
-            //Obtenemos el ID del ingrediente seleccionado
+            //Obtenemos el ID seleccionado
             int id = Convert.ToInt32(
                 dgvIngredientes.SelectedRows[0].Cells["ID"].Value
             );
@@ -389,30 +393,19 @@ namespace TPFINAL_PAZ
                 MessageBoxIcon.Question
             );
 
-            //Si el usuario elige No, cancelamos la operacion
             if (respuesta != DialogResult.Yes)
             {
                 return;
             }
 
-            //Recorremos el array para buscar el ingrediente
-            for (int i = 0; i < cantidadIngredientes; i++)
+            try
             {
-                //Comprobamos si encontramos el ID seleccionado
-                if (ingredientes[i].ID == id)
+                //Eliminamos el ingrediente desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                int filasAfectadas = conexion.EliminarIngrediente(id);
+
+                if (filasAfectadas > 0)
                 {
-                    //Desplazamos los ingredientes una posicion hacia la izquierda
-                    for (int j = i; j < cantidadIngredientes - 1; j++)
-                    {
-                        ingredientes[j] = ingredientes[j + 1];
-                    }
-
-                    //Vaciamos la ultima posicion que estaba ocupada
-                    ingredientes[cantidadIngredientes - 1] = null;
-
-                    //Reducimos la cantidad de ingredientes registrados
-                    cantidadIngredientes--;
-
                     //Reiniciamos la consulta anterior
                     idConsultado = -1;
 
@@ -420,14 +413,30 @@ namespace TPFINAL_PAZ
                     MostrarIngredientes();
                     LimpiarCampos();
 
-                    //Informamos que el ingrediente fue eliminado
                     MessageBox.Show("Ingrediente eliminado correctamente.");
-                    return;
+                }
+                else
+                {
+                    MessageBox.Show("No se encontro el ingrediente para eliminar.");
                 }
             }
-
-            //Avisamos si no encontramos el ingrediente
-            MessageBox.Show("No se encontro el ingrediente.");
+            catch (MySqlConnector.MySqlException ex)
+            {
+                if (ex.Number == 1451)
+                {
+                    MessageBox.Show(
+                        "No se puede eliminar este ingrediente porque esta siendo utilizado por una pocion."
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Error SQL al eliminar ingrediente: " + ex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al eliminar ingrediente: " + ex.Message);
+            }
         }
 
         private void btnMostrarTodos_Click(object sender, EventArgs e)
@@ -447,7 +456,7 @@ namespace TPFINAL_PAZ
 
         private void btnBuscar_Click(object sender, EventArgs e)
         {
-            //Obtenemos el texto ingresado en el buscador
+            //Obtenemos el texto ingresado
             string busqueda = txtBuscar.Text.Trim();
 
             //Verificamos que se haya ingresado un valor
@@ -461,62 +470,72 @@ namespace TPFINAL_PAZ
             //Cancelamos cualquier consulta anterior
             idConsultado = -1;
 
-            //Limpiamos la tabla antes de mostrar los resultados
-            MostrarIngredientes();
-            dgvIngredientes.Rows.Clear();
-
-            //Contamos los ingredientes encontrados
-            int encontrados = 0;
-
-            //Recorremos los ingredientes almacenados en el array
-            for (int i = 0; i < cantidadIngredientes; i++)
+            try
             {
-                //Obtenemos el ingrediente de la posicion actual
-                Ingrediente ingrediente = ingredientes[i];
+                //Obtenemos los ingredientes desde TiDB Cloud
+                ConexionBD conexion = new ConexionBD();
+                List<Ingrediente> lista = conexion.ObtenerIngredientes();
 
+                //Preparamos las columnas de la tabla
+                dgvIngredientes.Rows.Clear();
 
-                //Buscamos coincidencias en el ID, nombre y los cuatro efectos
-                bool coincide =
-                    ingrediente.ID.ToString() == busqueda ||
-                    ingrediente.Nombre.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    ingrediente.Efecto1.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    ingrediente.Efecto2.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    ingrediente.Efecto3.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    ingrediente.Efecto4.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0;
+                int encontrados = 0;
 
-
-                if (coincide)
+                //Recorremos los ingredientes obtenidos
+                foreach (Ingrediente ingrediente in lista)
                 {
-                    //Convertimos la calidad numerica a numeros romanos
-                    string calidad = ingrediente.Calidad == 1 ? "I" :
-                                     ingrediente.Calidad == 2 ? "II" : "III";
+                    //Buscamos por ID, nombre o cualquiera de los efectos
+                    bool coincide =
+                        ingrediente.ID.ToString() == busqueda ||
+                        ingrediente.Nombre.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        ingrediente.Efecto1.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        ingrediente.Efecto2.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        ingrediente.Efecto3.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        ingrediente.Efecto4.IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0;
 
-                    //Agregamos el ingrediente encontrado a la tabla
-                    dgvIngredientes.Rows.Add(
-                        ingrediente.ID,
-                        ingrediente.Nombre,
-                        ingrediente.Efecto1,
-                        ingrediente.Efecto2,
-                        ingrediente.Efecto3,
-                        ingrediente.Efecto4,
-                        calidad
-                    );
+                    if (coincide)
+                    {
+                        //Convertimos la calidad a numeros romanos
+                        string calidad = "II";
 
-                    //Aumentamos la cantidad de resultados encontrados
-                    encontrados++;
+                        if (ingrediente.Calidad == 1)
+                        {
+                            calidad = "I";
+                        }
+                        else if (ingrediente.Calidad == 3)
+                        {
+                            calidad = "III";
+                        }
+
+                        //Agregamos el ingrediente encontrado
+                        dgvIngredientes.Rows.Add(
+                            ingrediente.ID,
+                            ingrediente.Nombre,
+                            ingrediente.Efecto1,
+                            ingrediente.Efecto2,
+                            ingrediente.Efecto3,
+                            ingrediente.Efecto4,
+                            calidad
+                        );
+
+                        encontrados++;
+                    }
+                }
+
+                //Quitamos la seleccion automatica
+                dgvIngredientes.ClearSelection();
+
+                //Limpiamos los campos del formulario
+                LimpiarCampos();
+
+                if (encontrados == 0)
+                {
+                    MessageBox.Show("No se encontraron ingredientes.");
                 }
             }
-
-            //Quitamos cualquier seleccion automatica de la tabla
-            dgvIngredientes.ClearSelection();
-
-            //Limpiamos los campos del formulario
-            LimpiarCampos();
-
-            //Informamos cuando no existen coincidencias
-            if (encontrados == 0)
+            catch (Exception ex)
             {
-                MessageBox.Show("No se encontraron ingredientes.");
+                MessageBox.Show("Error al buscar ingredientes: " + ex.Message);
             }
         }
 
@@ -535,7 +554,10 @@ namespace TPFINAL_PAZ
 
         private void btnMesaAlquimia_Click(object sender, EventArgs e)
         {
-            //Cerramos el gestor para regresar a la mesa de alquimia
+            //Indicamos que queremos regresar al formulario principal
+            volverAMesa = true;
+
+            //Cerramos solamente el gestor de ingredientes
             this.Close();
         }
     }

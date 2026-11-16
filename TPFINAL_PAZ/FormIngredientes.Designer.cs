@@ -420,6 +420,7 @@
             this.Name = "FormIngredientes";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Skyrim - Gestor de Ingredientes";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormIngredientes_FormClosing);
             this.grpCalidad.ResumeLayout(false);
             this.grpCalidad.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIngredientes)).EndInit();

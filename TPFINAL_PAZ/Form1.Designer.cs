@@ -152,12 +152,13 @@
             // 
             this.btbAgregar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btbAgregar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btbAgregar.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btbAgregar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.btbAgregar.Location = new System.Drawing.Point(145, 339);
             this.btbAgregar.Name = "btbAgregar";
             this.btbAgregar.Size = new System.Drawing.Size(140, 40);
             this.btbAgregar.TabIndex = 9;
-            this.btbAgregar.Text = "Agregar";
+            this.btbAgregar.Text = "Agregar Poción";
             this.btbAgregar.UseVisualStyleBackColor = false;
             this.btbAgregar.Click += new System.EventHandler(this.btbAgregar_Click);
             // 
@@ -170,7 +171,7 @@
             this.btnConsultar.Name = "btnConsultar";
             this.btnConsultar.Size = new System.Drawing.Size(140, 40);
             this.btnConsultar.TabIndex = 10;
-            this.btnConsultar.Text = "Consultar";
+            this.btnConsultar.Text = "Consultar Poción";
             this.btnConsultar.UseVisualStyleBackColor = false;
             this.btnConsultar.Click += new System.EventHandler(this.btnConsultar_Click);
             // 
@@ -183,7 +184,7 @@
             this.btnModificar.Name = "btnModificar";
             this.btnModificar.Size = new System.Drawing.Size(140, 40);
             this.btnModificar.TabIndex = 11;
-            this.btnModificar.Text = "Modificar";
+            this.btnModificar.Text = "Cambiar Nombre";
             this.btnModificar.UseVisualStyleBackColor = false;
             this.btnModificar.Click += new System.EventHandler(this.btnModificar_Click);
             // 
@@ -196,7 +197,7 @@
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Size = new System.Drawing.Size(140, 40);
             this.btnEliminar.TabIndex = 12;
-            this.btnEliminar.Text = "Eliminar";
+            this.btnEliminar.Text = "Eliminar Poción";
             this.btnEliminar.UseVisualStyleBackColor = false;
             this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
             // 
@@ -209,7 +210,7 @@
             this.btnMostrarTodos.Name = "btnMostrarTodos";
             this.btnMostrarTodos.Size = new System.Drawing.Size(140, 40);
             this.btnMostrarTodos.TabIndex = 13;
-            this.btnMostrarTodos.Text = "Mostrar todos";
+            this.btnMostrarTodos.Text = "Mostrar Todas las Pociónes";
             this.btnMostrarTodos.UseVisualStyleBackColor = false;
             this.btnMostrarTodos.Click += new System.EventHandler(this.btnMostrarTodos_Click);
             // 
@@ -230,7 +231,7 @@
             // 
             this.lblIngrediente1.AutoSize = true;
             this.lblIngrediente1.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIngrediente1.Location = new System.Drawing.Point(205, 83);
+            this.lblIngrediente1.Location = new System.Drawing.Point(205, 95);
             this.lblIngrediente1.Name = "lblIngrediente1";
             this.lblIngrediente1.Size = new System.Drawing.Size(112, 21);
             this.lblIngrediente1.TabIndex = 15;
@@ -240,7 +241,7 @@
             // 
             this.lblIngrediente2.AutoSize = true;
             this.lblIngrediente2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIngrediente2.Location = new System.Drawing.Point(755, 83);
+            this.lblIngrediente2.Location = new System.Drawing.Point(755, 95);
             this.lblIngrediente2.Name = "lblIngrediente2";
             this.lblIngrediente2.Size = new System.Drawing.Size(112, 21);
             this.lblIngrediente2.TabIndex = 16;

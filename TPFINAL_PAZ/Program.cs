@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using TPFINAL_PAZ.Models;
 using TPFINAL_PAZ.Data;
+using DotNetEnv;
 
 namespace TPFINAL_PAZ
 {
@@ -19,8 +20,8 @@ namespace TPFINAL_PAZ
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            //Cargamos los ingredientes de prueba al iniciar la aplicacion
-            DatosAlquimia.CargarIngredientesPrueba();
+            //Cargar las variables del archivo .env
+            Env.Load();
 
             Application.Run(new Form1());
         }
