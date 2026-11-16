@@ -41,6 +41,9 @@ namespace TPFINAL_PAZ
         {
             InitializeComponent();
 
+            //Controlamos los cambios de seleccion
+            dgvPociones.SelectionChanged += dgvPociones_SelectionChanged;
+
             //El ID se genera automaticamente en TiDB Cloud
             txtID.Text = "Automatico";
 
@@ -50,6 +53,16 @@ namespace TPFINAL_PAZ
             //Mostramos automaticamente las pociones guardadas
             MostrarPociones();
 
+        }
+        private void dgvPociones_SelectionChanged(object sender, EventArgs e)
+        {
+            //Evitamos modificar una pocion consultada anteriormente
+            if (dgvPociones.SelectedRows.Count != 1 ||
+                dgvPociones.SelectedRows[0].Cells["ID"].Value == null ||
+                dgvPociones.SelectedRows[0].Cells["ID"].Value.ToString() != idConsultado.ToString())
+            {
+                idConsultado = -1;
+            }
         }
 
         private void CargarIngredientesSQL()

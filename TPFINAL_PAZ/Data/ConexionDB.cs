@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using TPFINAL_PAZ.Models;
 
 namespace TPFINAL_PAZ.Data
@@ -21,10 +22,38 @@ namespace TPFINAL_PAZ.Data
         //Crear y devolver una conexion segura a TiDB Cloud
         public MySqlConnection ObtenerConexion()
         {
+            //Validamos la configuracion antes de intentar conectar
+            if (string.IsNullOrWhiteSpace(servidor) ||
+                string.IsNullOrWhiteSpace(puerto) ||
+                string.IsNullOrWhiteSpace(baseDatos) ||
+                string.IsNullOrWhiteSpace(usuario) ||
+                string.IsNullOrWhiteSpace(contrasena) ||
+                string.IsNullOrWhiteSpace(certificado))
+            {
+                throw new InvalidOperationException(
+                    "Faltan datos de conexion en el archivo .env.");
+            }
+
+            uint puertoNumerico;
+
+            if (!uint.TryParse(puerto, out puertoNumerico) ||
+                puertoNumerico == 0 ||
+                puertoNumerico > 65535)
+            {
+                throw new InvalidOperationException(
+                    "El puerto DB_PORT del archivo .env no es valido.");
+            }
+
+            if (!File.Exists(certificado))
+            {
+                throw new FileNotFoundException(
+                    "No se encontro el certificado TLS configurado en DB_SSL_CA.");
+            }
+
             MySqlConnectionStringBuilder configuracion = new MySqlConnectionStringBuilder();
 
             configuracion.Server = servidor;
-            configuracion.Port = uint.Parse(puerto);
+            configuracion.Port = puertoNumerico;
             configuracion.Database = baseDatos;
             configuracion.UserID = usuario;
             configuracion.Password = contrasena;

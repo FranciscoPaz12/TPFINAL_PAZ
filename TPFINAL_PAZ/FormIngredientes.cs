@@ -19,6 +19,15 @@ namespace TPFINAL_PAZ
 
             InitializeComponent();
 
+            //Limitamos los efectos al tamano de las columnas SQL
+            txtEfecto1.MaxLength = 100;
+            txtEfecto2.MaxLength = 100;
+            txtEfecto3.MaxLength = 100;
+            txtEfecto4.MaxLength = 100;
+
+            //Controlamos los cambios de seleccion
+            dgvIngredientes.SelectionChanged += dgvIngredientes_SelectionChanged;
+
             //El ID se genera automaticamente en TiDB Cloud
             txtID.Text = "Automatico";
 
@@ -31,6 +40,49 @@ namespace TPFINAL_PAZ
             //Mostramos los ingredientes al abrir el formulario
             MostrarIngredientes();
 
+        }
+
+        private void dgvIngredientes_SelectionChanged(object sender, EventArgs e)
+        {
+            //Evitamos modificar un ingrediente consultado anteriormente
+            if (dgvIngredientes.SelectedRows.Count != 1 ||
+                dgvIngredientes.SelectedRows[0].Cells["ID"].Value == null ||
+                dgvIngredientes.SelectedRows[0].Cells["ID"].Value.ToString() != idConsultado.ToString())
+            {
+                idConsultado = -1;
+            }
+        }
+
+        private bool ValidarDatosIngrediente()
+        {
+            TextBox[] campos =
+            {
+        txtNombre,
+        txtEfecto1,
+        txtEfecto2,
+        txtEfecto3,
+        txtEfecto4
+    };
+
+            foreach (TextBox campo in campos)
+            {
+                if (string.IsNullOrWhiteSpace(campo.Text))
+                {
+                    MessageBox.Show("Complete todos los campos.");
+                    campo.Focus();
+                    return false;
+                }
+            }
+
+            if (!rdCalidad1.Checked &&
+                !rdCalidad2.Checked &&
+                !rdCalidad3.Checked)
+            {
+                MessageBox.Show("Seleccione una calidad para el ingrediente.");
+                return false;
+            }
+
+            return true;
         }
 
 
@@ -85,14 +137,8 @@ namespace TPFINAL_PAZ
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
-            //Verificamos que todos los campos esten completos
-            if (string.IsNullOrWhiteSpace(txtNombre.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto1.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto2.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto3.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto4.Text))
+            if (!ValidarDatosIngrediente())
             {
-                MessageBox.Show("Complete todos los campos.");
                 return;
             }
 
@@ -310,14 +356,8 @@ namespace TPFINAL_PAZ
                 return;
             }
 
-            //Verificamos que todos los campos esten completos
-            if (string.IsNullOrWhiteSpace(txtNombre.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto1.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto2.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto3.Text) ||
-                string.IsNullOrWhiteSpace(txtEfecto4.Text))
+            if (!ValidarDatosIngrediente())
             {
-                MessageBox.Show("Complete todos los campos.");
                 return;
             }
 
