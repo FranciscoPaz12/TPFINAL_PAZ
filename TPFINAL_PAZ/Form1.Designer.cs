@@ -49,6 +49,9 @@
             this.cmbIngrediente2 = new System.Windows.Forms.ComboBox();
             this.btnElaborar = new System.Windows.Forms.Button();
             this.btnGestionarIngredientes = new System.Windows.Forms.Button();
+            this.btnBuscar = new System.Windows.Forms.Button();
+            this.txtBuscar = new System.Windows.Forms.TextBox();
+            this.lblBuscar = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPociones)).BeginInit();
             this.SuspendLayout();
             // 
@@ -57,7 +60,7 @@
             this.lblTitulo.AutoSize = true;
             this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTitulo.ForeColor = System.Drawing.Color.DarkGoldenrod;
-            this.lblTitulo.Location = new System.Drawing.Point(324, 55);
+            this.lblTitulo.Location = new System.Drawing.Point(338, 33);
             this.lblTitulo.Name = "lblTitulo";
             this.lblTitulo.Size = new System.Drawing.Size(428, 37);
             this.lblTitulo.TabIndex = 0;
@@ -67,7 +70,7 @@
             // 
             this.txtID.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
             this.txtID.Cursor = System.Windows.Forms.Cursors.Default;
-            this.txtID.Location = new System.Drawing.Point(124, 207);
+            this.txtID.Location = new System.Drawing.Point(138, 185);
             this.txtID.Name = "txtID";
             this.txtID.ReadOnly = true;
             this.txtID.Size = new System.Drawing.Size(250, 20);
@@ -77,16 +80,15 @@
             // 
             // txtNombre
             // 
-            this.txtNombre.Location = new System.Drawing.Point(674, 207);
+            this.txtNombre.Location = new System.Drawing.Point(688, 185);
             this.txtNombre.Name = "txtNombre";
-            this.txtNombre.ReadOnly = true;
             this.txtNombre.Size = new System.Drawing.Size(250, 20);
             this.txtNombre.TabIndex = 2;
             // 
             // txtEfecto
             // 
             this.txtEfecto.Cursor = System.Windows.Forms.Cursors.Default;
-            this.txtEfecto.Location = new System.Drawing.Point(124, 271);
+            this.txtEfecto.Location = new System.Drawing.Point(138, 249);
             this.txtEfecto.Name = "txtEfecto";
             this.txtEfecto.ReadOnly = true;
             this.txtEfecto.Size = new System.Drawing.Size(250, 20);
@@ -97,7 +99,7 @@
             // txtMagnitud
             // 
             this.txtMagnitud.Cursor = System.Windows.Forms.Cursors.Default;
-            this.txtMagnitud.Location = new System.Drawing.Point(674, 271);
+            this.txtMagnitud.Location = new System.Drawing.Point(688, 249);
             this.txtMagnitud.Name = "txtMagnitud";
             this.txtMagnitud.ReadOnly = true;
             this.txtMagnitud.Size = new System.Drawing.Size(250, 20);
@@ -109,7 +111,7 @@
             // 
             this.lblID.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblID.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.lblID.Location = new System.Drawing.Point(120, 183);
+            this.lblID.Location = new System.Drawing.Point(134, 161);
             this.lblID.Name = "lblID";
             this.lblID.Size = new System.Drawing.Size(170, 21);
             this.lblID.TabIndex = 5;
@@ -120,7 +122,7 @@
             // 
             this.lblNombre.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblNombre.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.lblNombre.Location = new System.Drawing.Point(670, 183);
+            this.lblNombre.Location = new System.Drawing.Point(684, 161);
             this.lblNombre.Name = "lblNombre";
             this.lblNombre.Size = new System.Drawing.Size(170, 21);
             this.lblNombre.TabIndex = 6;
@@ -130,7 +132,7 @@
             // 
             this.lblEfecto.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblEfecto.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.lblEfecto.Location = new System.Drawing.Point(120, 247);
+            this.lblEfecto.Location = new System.Drawing.Point(134, 225);
             this.lblEfecto.Name = "lblEfecto";
             this.lblEfecto.Size = new System.Drawing.Size(170, 21);
             this.lblEfecto.TabIndex = 7;
@@ -140,7 +142,7 @@
             // 
             this.lblMagnitud.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblMagnitud.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.lblMagnitud.Location = new System.Drawing.Point(670, 247);
+            this.lblMagnitud.Location = new System.Drawing.Point(684, 225);
             this.lblMagnitud.Name = "lblMagnitud";
             this.lblMagnitud.Size = new System.Drawing.Size(170, 21);
             this.lblMagnitud.TabIndex = 8;
@@ -151,7 +153,7 @@
             this.btbAgregar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btbAgregar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btbAgregar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.btbAgregar.Location = new System.Drawing.Point(132, 368);
+            this.btbAgregar.Location = new System.Drawing.Point(145, 339);
             this.btbAgregar.Name = "btbAgregar";
             this.btbAgregar.Size = new System.Drawing.Size(140, 40);
             this.btbAgregar.TabIndex = 9;
@@ -164,7 +166,7 @@
             this.btnConsultar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btnConsultar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnConsultar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.btnConsultar.Location = new System.Drawing.Point(292, 368);
+            this.btnConsultar.Location = new System.Drawing.Point(305, 339);
             this.btnConsultar.Name = "btnConsultar";
             this.btnConsultar.Size = new System.Drawing.Size(140, 40);
             this.btnConsultar.TabIndex = 10;
@@ -177,7 +179,7 @@
             this.btnModificar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btnModificar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnModificar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.btnModificar.Location = new System.Drawing.Point(452, 368);
+            this.btnModificar.Location = new System.Drawing.Point(465, 339);
             this.btnModificar.Name = "btnModificar";
             this.btnModificar.Size = new System.Drawing.Size(140, 40);
             this.btnModificar.TabIndex = 11;
@@ -190,7 +192,7 @@
             this.btnEliminar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btnEliminar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnEliminar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.btnEliminar.Location = new System.Drawing.Point(612, 368);
+            this.btnEliminar.Location = new System.Drawing.Point(625, 339);
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Size = new System.Drawing.Size(140, 40);
             this.btnEliminar.TabIndex = 12;
@@ -203,7 +205,7 @@
             this.btnMostrarTodos.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
             this.btnMostrarTodos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMostrarTodos.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.btnMostrarTodos.Location = new System.Drawing.Point(772, 368);
+            this.btnMostrarTodos.Location = new System.Drawing.Point(785, 339);
             this.btnMostrarTodos.Name = "btnMostrarTodos";
             this.btnMostrarTodos.Size = new System.Drawing.Size(140, 40);
             this.btnMostrarTodos.TabIndex = 13;
@@ -217,7 +219,7 @@
             this.dgvPociones.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvPociones.BackgroundColor = System.Drawing.Color.WhiteSmoke;
             this.dgvPociones.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvPociones.Location = new System.Drawing.Point(124, 420);
+            this.dgvPociones.Location = new System.Drawing.Point(138, 433);
             this.dgvPociones.Name = "dgvPociones";
             this.dgvPociones.ReadOnly = true;
             this.dgvPociones.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -228,7 +230,7 @@
             // 
             this.lblIngrediente1.AutoSize = true;
             this.lblIngrediente1.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIngrediente1.Location = new System.Drawing.Point(191, 105);
+            this.lblIngrediente1.Location = new System.Drawing.Point(205, 83);
             this.lblIngrediente1.Name = "lblIngrediente1";
             this.lblIngrediente1.Size = new System.Drawing.Size(112, 21);
             this.lblIngrediente1.TabIndex = 15;
@@ -238,7 +240,7 @@
             // 
             this.lblIngrediente2.AutoSize = true;
             this.lblIngrediente2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIngrediente2.Location = new System.Drawing.Point(741, 105);
+            this.lblIngrediente2.Location = new System.Drawing.Point(755, 83);
             this.lblIngrediente2.Name = "lblIngrediente2";
             this.lblIngrediente2.Size = new System.Drawing.Size(112, 21);
             this.lblIngrediente2.TabIndex = 16;
@@ -248,25 +250,27 @@
             // 
             this.cmbIngrediente1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbIngrediente1.FormattingEnabled = true;
-            this.cmbIngrediente1.Location = new System.Drawing.Point(52, 147);
+            this.cmbIngrediente1.Location = new System.Drawing.Point(66, 125);
             this.cmbIngrediente1.Name = "cmbIngrediente1";
             this.cmbIngrediente1.Size = new System.Drawing.Size(390, 21);
             this.cmbIngrediente1.TabIndex = 17;
+            this.cmbIngrediente1.SelectedIndexChanged += new System.EventHandler(this.Ingrediente_SelectedIndexChanged);
             // 
             // cmbIngrediente2
             // 
             this.cmbIngrediente2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbIngrediente2.FormattingEnabled = true;
-            this.cmbIngrediente2.Location = new System.Drawing.Point(602, 147);
+            this.cmbIngrediente2.Location = new System.Drawing.Point(616, 125);
             this.cmbIngrediente2.Name = "cmbIngrediente2";
             this.cmbIngrediente2.Size = new System.Drawing.Size(390, 21);
             this.cmbIngrediente2.TabIndex = 18;
+            this.cmbIngrediente2.SelectedIndexChanged += new System.EventHandler(this.Ingrediente_SelectedIndexChanged);
             // 
             // btnElaborar
             // 
             this.btnElaborar.AutoSize = true;
             this.btnElaborar.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnElaborar.Location = new System.Drawing.Point(434, 307);
+            this.btnElaborar.Location = new System.Drawing.Point(447, 293);
             this.btnElaborar.Name = "btnElaborar";
             this.btnElaborar.Size = new System.Drawing.Size(177, 40);
             this.btnElaborar.TabIndex = 19;
@@ -284,12 +288,49 @@
             this.btnGestionarIngredientes.UseVisualStyleBackColor = true;
             this.btnGestionarIngredientes.Click += new System.EventHandler(this.btnGestionarIngredientes_Click);
             // 
+            // btnBuscar
+            // 
+            this.btnBuscar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBuscar.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btnBuscar.Location = new System.Drawing.Point(856, 385);
+            this.btnBuscar.Name = "btnBuscar";
+            this.btnBuscar.Size = new System.Drawing.Size(150, 42);
+            this.btnBuscar.TabIndex = 25;
+            this.btnBuscar.Text = "Buscar";
+            this.btnBuscar.UseVisualStyleBackColor = true;
+            this.btnBuscar.Click += new System.EventHandler(this.btnBuscar_Click);
+            // 
+            // txtBuscar
+            // 
+            this.txtBuscar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtBuscar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtBuscar.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtBuscar.Location = new System.Drawing.Point(206, 395);
+            this.txtBuscar.Name = "txtBuscar";
+            this.txtBuscar.Size = new System.Drawing.Size(640, 25);
+            this.txtBuscar.TabIndex = 24;
+            this.txtBuscar.TextChanged += new System.EventHandler(this.txtBuscar_TextChanged);
+            // 
+            // lblBuscar
+            // 
+            this.lblBuscar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblBuscar.Location = new System.Drawing.Point(86, 399);
+            this.lblBuscar.Name = "lblBuscar";
+            this.lblBuscar.Size = new System.Drawing.Size(115, 20);
+            this.lblBuscar.TabIndex = 23;
+            this.lblBuscar.Text = "Buscar ingrediente:";
+            this.lblBuscar.Click += new System.EventHandler(this.lblBuscar_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Gainsboro;
             this.ClientSize = new System.Drawing.Size(1034, 677);
+            this.Controls.Add(this.btnBuscar);
+            this.Controls.Add(this.txtBuscar);
+            this.Controls.Add(this.lblBuscar);
             this.Controls.Add(this.btnGestionarIngredientes);
             this.Controls.Add(this.btnElaborar);
             this.Controls.Add(this.cmbIngrediente2);
@@ -345,6 +386,9 @@
         public System.Windows.Forms.ComboBox cmbIngrediente1;
         public System.Windows.Forms.ComboBox cmbIngrediente2;
         private System.Windows.Forms.Button btnGestionarIngredientes;
+        private System.Windows.Forms.Button btnBuscar;
+        private System.Windows.Forms.TextBox txtBuscar;
+        private System.Windows.Forms.Label lblBuscar;
     }
 }
 
